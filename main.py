@@ -115,7 +115,7 @@ def autoencoder_numbers(num_test):
 
     print("Creating error plot")
 
-    threshold_fixed = 1.5 * np.mean(num_mse)
+    threshold = np.mean(num_mse) + np.std(num_mse)
     fig, ax = plt.subplots()
 
     ax.plot(num_mse, marker='o', ms=1.5, linestyle='', label="Digit %s" % num_test)
@@ -124,7 +124,7 @@ def autoencoder_numbers(num_test):
 
     ax.plot(others_mse, marker='o', ms=1, linestyle='', label='Others')
 
-    ax.hlines(threshold_fixed, ax.get_xlim()[0], ax.get_xlim()[1], colors="r", zorder=100, label='Threshold')
+    ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="r", zorder=100, label='Threshold')
     ax.legend()
     plt.title("Reconstruction error for %s and others" % num_test)
     plt.ylabel("Reconstruction error")
