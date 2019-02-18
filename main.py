@@ -21,9 +21,9 @@ def plot_training_loss(training_history):
     plt.show()
 
 
-def plot_output(data_test, decoded):
-    n = 10  # how many digits we will display
-    plt.figure(figsize=(20, 4))
+def plot_output(data_test, decoded, n_samples):
+    n = n_samples  # how many digits we will display
+    plt.figure(figsize=(n*2, 4))
     for i in range(n):
         # display original
         ax = plt.subplot(2, n, i + 1)
@@ -42,7 +42,7 @@ def plot_output(data_test, decoded):
     plt.show()
 
 
-def autoencoder_numbers(num_test):
+def train_autoencoder_for_number(num_test):
     if not os.path.exists(TRAINED_MODELS_PATH):
         os.makedirs(TRAINED_MODELS_PATH)
 
@@ -111,7 +111,7 @@ def autoencoder_numbers(num_test):
     num_mse = np.mean(np.power(num_x_test - num_x_reconstruction, 2), axis=1)
     others_mse = np.mean(np.power(others_x_train - others_x_reconstruction, 2), axis=1)
 
-    plot_output(num_x_test, num_x_reconstruction)
+    plot_output(num_x_test, num_x_reconstruction, 10)
 
     print("Creating error plot")
 
@@ -131,6 +131,10 @@ def autoencoder_numbers(num_test):
     plt.xlabel("Data point index")
     plt.show()
 
+    print("Hacer prediccion con todos los autoencoders")
+    image = num_x_test[0:1:1]
+    predict(image)
+
     # Evaluar el modelo
     # mse = np.mean(np.power(num_x_test - num_x_reconstruction, 2), axis=1)
     # error_df = pd.DataFrame({'Reconstruction_error': mse,
@@ -138,5 +142,24 @@ def autoencoder_numbers(num_test):
     # error_df.describe()
 
 
-for i in range(10):
-    autoencoder_numbers(i)
+def train_all():
+    for i in range(10):
+        train_autoencoder_for_number(i)
+
+
+def predict(image):
+    autoencoders = []
+    for i in range(10):
+        autoencoders.append(load_model(TRAINED_MODELS_PATH + 'auto_' + str(i) + '.h5'))
+
+    reconstruction_errors = []
+    for i in range(10):
+        reconstruction = autoencoders[i].predict(image)
+        mse = np.mean(np.power(image - reconstruction, 2), axis=1)
+        plot_output(image, reconstruction, 1)
+        reconstruction_errors.append(mse[0])
+
+    print(reconstruction_errors)
+
+
+train_autoencoder_for_number(0)
