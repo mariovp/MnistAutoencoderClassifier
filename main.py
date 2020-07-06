@@ -2,11 +2,11 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
-from keras.datasets import mnist
-from keras.engine.saving import load_model
-from keras.layers import Input, Dense
-from keras.models import Model
+import tensorflow as tf
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.models import Model, load_model
 
 TRAINED_MODELS_PATH = './trained_models/'
 
@@ -76,7 +76,8 @@ def train_autoencoder_for_number(digit):
 
     # Inicializar Autoencoder
     # this is the size of our encoded representations
-    encoding_dim = 32  # 32 floats -> compression of factor 24.5, assuming the input is 784 floats
+    # 32 floats -> compression of factor 24.5, assuming the input is 784 floats
+    encoding_dim = 32
 
     # this is our input placeholder
     input_layer = Input(shape=(784,))
@@ -99,9 +100,11 @@ def train_autoencoder_for_number(digit):
                      write_graph=True,
                      write_images=True)
 
-    ea = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+    ea = EarlyStopping(monitor='val_loss', patience=3,
+                       restore_best_weights=True)
 
-    digit_x_train, digit_x_test, others_x_train = get_train_test_data_for_digit(digit)
+    digit_x_train, digit_x_test, others_x_train = get_train_test_data_for_digit(
+        digit)
 
     files = os.listdir(TRAINED_MODELS_PATH)
     exists = False
@@ -118,12 +121,14 @@ def train_autoencoder_for_number(digit):
                                   callbacks=[cp, tb, ea]).history
         plot_training_loss(history, digit)
 
-    autoencoder = load_model(TRAINED_MODELS_PATH + 'auto_' + str(digit) + '.h5')
+    autoencoder = load_model(TRAINED_MODELS_PATH +
+                             'auto_' + str(digit) + '.h5')
     num_x_reconstruction = autoencoder.predict(digit_x_test)
     others_x_reconstruction = autoencoder.predict(others_x_train)
 
     num_mse = np.mean(np.power(digit_x_test - num_x_reconstruction, 2), axis=1)
-    others_mse = np.mean(np.power(others_x_train - others_x_reconstruction, 2), axis=1)
+    others_mse = np.mean(
+        np.power(others_x_train - others_x_reconstruction, 2), axis=1)
 
     plot_output(digit_x_test, num_x_reconstruction, 10)
 
@@ -132,13 +137,15 @@ def train_autoencoder_for_number(digit):
     threshold = np.mean(num_mse) + np.std(num_mse)
     fig, ax = plt.subplots()
 
-    ax.plot(num_mse, marker='o', ms=1.5, linestyle='', label="Digit %s" % digit)
+    ax.plot(num_mse, marker='o', ms=1.5,
+            linestyle='', label="Digit %s" % digit)
 
     others_mse = np.random.choice(others_mse, num_mse.size)
 
     ax.plot(others_mse, marker='o', ms=1, linestyle='', label='Others')
 
-    ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="r", zorder=100, label='Threshold')
+    ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[
+              1], colors="r", zorder=100, label='Threshold')
     ax.legend()
     plt.title("Reconstruction error for %s and others" % digit)
     plt.ylabel("Reconstruction error")
@@ -164,7 +171,8 @@ def train_all():
 def predict(image):
     autoencoders = []
     for i in range(10):
-        autoencoders.append(load_model(TRAINED_MODELS_PATH + 'auto_' + str(i) + '.h5'))
+        autoencoders.append(load_model(
+            TRAINED_MODELS_PATH + 'auto_' + str(i) + '.h5'))
 
     reconstruction_errors = []
     for i in range(10):
@@ -181,7 +189,8 @@ def classification_test():
 
     autoencoders = []
     for i in range(10):
-        autoencoders.append(load_model(TRAINED_MODELS_PATH + 'auto_' + str(i) + '.h5'))
+        autoencoders.append(load_model(
+            TRAINED_MODELS_PATH + 'auto_' + str(i) + '.h5'))
 
     reconstruction_errors = []
     for i in range(10):
@@ -216,7 +225,8 @@ def classification_test():
 
         print(cell_colors)
 
-        plt.table(cellText=image_errors.reshape(10, 1), cellColours=cell_colors.reshape(10, 1), rowLabels=row_labels)
+        plt.table(cellText=image_errors.reshape(10, 1),
+                  cellColours=cell_colors.reshape(10, 1), rowLabels=row_labels)
 
         plt.title("Reconstruction error for each digit autoencoder")
 
